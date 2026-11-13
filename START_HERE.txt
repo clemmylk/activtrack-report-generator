@@ -1,4 +1,4 @@
-ACTIVTRACK REPORT GENERATOR 1.8.0 - WINDOWS x64
+ACTIVTRACK REPORT GENERATOR 1.8.1 - WINDOWS x64
 
 1. Extract the ENTIRE ZIP to a writable folder (for example Documents).
 2. Double-click 02_START_APP.bat. Python is already included.

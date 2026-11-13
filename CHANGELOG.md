@@ -1,5 +1,17 @@
 # Release notes
 
+## 1.8.1 — 13 November 2026
+
+- Fixed long activity messages stretching the workspace beyond the window.
+- Kept report/dashboard table scrolling inside the available space, with controls and footer visible.
+- Show the complete latest activity message, with a larger View activity dialog for recent history.
+- Verified layout at 1242x668, 1366x768 and 1920x1000; UI interaction checks passed.
+
+### Updating
+
+Extract this release into a new folder and launch its 02_START_APP.bat. Keep your existing report output folder. Recreate the desktop shortcut if needed.
+
+
 ## 1.8.0 — 13 November 2026
 
 - Polished local React desktop interface with centred ActivTrack logo, compact Daily Operations heading, black/white layout, red primary actions and retained purple/blue tracking accents.

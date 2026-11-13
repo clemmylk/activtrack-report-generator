@@ -4,7 +4,7 @@
 
 ## Download and start
 
-1. Open [Releases](https://github.com/clemmylk/activtrack-report-generator/releases/latest) and download **ActivTrack-Report-Generator-1.8.0-Windows-x64.zip** under **Assets**. Do not use GitHub's automatically generated source-code ZIP as the installed application.
+1. Open [Releases](https://github.com/clemmylk/activtrack-report-generator/releases/latest) and download **ActivTrack-Report-Generator-1.8.1-Windows-x64.zip** under **Assets**. Do not use GitHub's automatically generated source-code ZIP as the installed application.
 2. Right-click the downloaded ZIP → **Extract All**. Put the extracted folder somewhere writable, such as Documents. Do not run the app inside the ZIP.
 3. Open the extracted folder and double-click **02_START_APP.bat**.
 4. Optional: run **01_CREATE_DESKTOP_SHORTCUT.vbs** once to create a desktop shortcut.
