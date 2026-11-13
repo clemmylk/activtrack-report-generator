@@ -1,0 +1,11 @@
+ACTIVTRACK REPORT GENERATOR 1.8.0 - WINDOWS x64
+
+1. Extract the ENTIRE ZIP to a writable folder (for example Documents).
+2. Double-click 02_START_APP.bat. Python is already included.
+3. Click Open ActivTrack and sign in with your own authorised account.
+4. Set filters on the Bookings page in that same Edge window.
+5. Click Capture & Generate Excel.
+
+Read USER_GUIDE.md for all tools and TROUBLESHOOTING.md if anything fails.
+Optional: 01_CREATE_DESKTOP_SHORTCUT.vbs creates a shortcut.
+Microsoft Edge and internet are required. This does not include an ActivTrack account.

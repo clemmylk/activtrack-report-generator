@@ -1,0 +1,9 @@
+Copyright (c) 2026 Globactive Logistics Sri Lanka. Developed by Clement R.
+
+All rights reserved, except the limited permission below and rights granted by third-party licences.
+
+Permission is granted to download and run the unmodified official release for lawful internal business use with accounts and data the user is authorised to access. This does not grant rights to resell, rebrand, sublicense, or distribute modified versions. Contact the copyright holder for commercial licensing or other rights. Publication on GitHub is not a dedication of the project or its business logic to the public domain.
+
+The software is provided AS IS, without warranties of accuracy, availability, fitness for a particular purpose or uninterrupted operation. Independently verify operational dates, container status and customer notices. To the extent permitted by law, the copyright holder is not liable for loss arising from use of the software.
+
+Third-party components remain under their respective licences; this notice does not restrict those licences. See licenses/, runtime/LICENSE.txt and package licence files under runtime/Lib/site-packages. Kibo, React, Lucide and Inter notices are included separately.

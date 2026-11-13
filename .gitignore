@@ -1,0 +1,11 @@
+runtime/
+.venv/
+.runtime/
+__pycache__/
+*.pyc
+*.log
+*profile*/
+results/
+*_Source.json
+*.xlsx
+node_modules/

@@ -1,0 +1,1 @@
+{"name":"activtrack-desktop-ui","private":true,"version":"1.8.0","type":"module","scripts":{"build":"vite build --base=./"},"dependencies":{"@fontsource/inter":"^5.1.0","lucide-react":"^0.468.0","react":"^19.0.0","react-dom":"^19.0.0"},"devDependencies":{"jsdom":"^31.0.1","vite":"^7.0.0"}}
