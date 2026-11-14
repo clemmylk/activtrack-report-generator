@@ -46,3 +46,11 @@ footer{flex-shrink:0;overflow-wrap:anywhere}
 .activity .log-lines>div{padding-top:8px}
 .activity .log-lines>div>span:last-child{line-height:1.55}
 .dialog textarea[readonly]{white-space:pre-wrap;overflow-wrap:anywhere;resize:vertical}
+
+/* Pending operations are visibly locked before the engine's first status poll. */
+.button:disabled,.button.purple:disabled,.button.red:disabled,.button.blue:disabled{background:#e5e5e9;border-color:#d4d4da;color:#777781;box-shadow:none;opacity:1;cursor:not-allowed;transform:none}
+.dashboard-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px;min-width:0}
+.last-checked{font-size:12px;font-weight:600;color:#65656e;text-align:right;overflow-wrap:anywhere}
+
+.sidebar-bottom{margin-top:auto;display:grid;gap:2px}.sidebar-bottom .folder{margin-top:0;text-align:left}.update-link small{margin-left:auto;font-size:10px}.update-versions{display:flex;gap:28px;margin:22px 0;font-size:13px}.update-versions strong{display:block;margin-top:6px;color:#18181c}.release-notes{margin-top:16px;font-size:12px}.release-notes pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;font:12px/1.5 Inter,sans-serif;margin-top:10px}
+

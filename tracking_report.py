@@ -1,6 +1,7 @@
 """Build carrier-vs-ActivTrack vessel tracking comparison workbooks."""
 
 from __future__ import annotations
+from sea_legs import sea_legs
 
 import csv
 import json
@@ -78,7 +79,7 @@ def schedules_from_source(data: dict) -> list[dict]:
             if isinstance(schedule, dict):
                 key = _schedule_key(schedule)
                 if key and key not in schedules:
-                    schedules[key] = schedule
+                    schedules[key] = dict(schedule,transshipments=sea_legs(schedule))
         return list(schedules.values())
 
     schedules = {}
@@ -87,7 +88,7 @@ def schedules_from_source(data: dict) -> list[dict]:
         if isinstance(schedule, dict):
             key = _schedule_key(schedule)
             if key and key not in schedules:
-                schedules[key] = schedule
+                schedules[key] = dict(schedule,transshipments=sea_legs(schedule))
     return list(schedules.values())
 
 
@@ -110,8 +111,6 @@ def _in_transit_vessel_keys(data: dict) -> set[str]:
 
     vessels: set[str] = set()
     for schedule in schedules_from_source(data):
-        if not _actual_is_missing(schedule.get("ata")):
-            continue
         for leg in schedule.get("transshipments") or []:
             if not _actual_is_missing(leg.get("ata")):
                 continue
@@ -146,8 +145,6 @@ def load_active_track_legs(source_path: Path, requested_vessels: Iterable[str]) 
     legs: list[dict] = []
 
     for schedule in schedules_from_source(data):
-        if not _actual_is_missing(schedule.get("ata")):
-            continue
         schedule_key = _schedule_key(schedule)
         for leg in schedule.get("transshipments") or []:
             if not _actual_is_missing(leg.get("ata")):

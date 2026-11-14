@@ -62,49 +62,43 @@ def leg_prefix(row):
     return ""
 
 def build_notice(row, reason=""):
-    changes = changes_for(row)
-    initial_vessel = str(row.get("vessel") or "").strip()
-    revised_vessel = str(row.get("revised_vessel") or "").strip()
-    revised_voyage = str(row.get("revised_voyage") or "").strip()
-    vessel_changed = bool(revised_vessel and (revised_vessel.upper() != initial_vessel.upper() or (revised_voyage and revised_voyage.upper() != str(row.get("voyage") or "").upper())))
-    if not changes and not vessel_changed:
-        raise ValueError("No confirmed date difference is available. Both original and revised dates are required.")
-    directions = ["DELAYED" if change[3] > 0 else "ADVANCED" for change in changes]
-    prefix = leg_prefix(row)
-    if not changes:
-        header = prefix + ("SCHEDULE CHANGE" if initial_vessel else "ADDED")
-    elif len(set(directions)) == 1:
-        header = prefix + " AND ".join(change[0] for change in changes) + " CHANGED AND " + directions[0]
-    else:
-        header = prefix + " AND ".join(f"{change[0]} {direction}" for change, direction in zip(changes, directions))
-    if vessel_changed and changes:
-        header = "VESSEL CHANGE, " + header
-    elif vessel_changed and not prefix:
-        header = "VESSEL SCHEDULE CHANGE" if initial_vessel else "VESSEL ADDED"
-    intro = "PLEASE BE INFORMED THAT THE SUBJECT SHIPMENT " + prefix + "SCHEDULE HAS BEEN REVISED"
-    reason = " ".join(str(reason or "").split()).strip().rstrip(".")
-    if reason.lower().startswith("due to "):
-        reason = reason[7:]
-    if reason:
-        intro += " DUE TO " + reason.upper()
-    lines = [intro + ".", ""]
-    identity = " / ".join(str(row.get(key) or "").strip() for key in ("vessel", "voyage") if row.get(key))
-    if identity:
-        lines.append("VESSEL / VOYAGE: " + identity.upper())
-    if vessel_changed:
-        revised = " / ".join(v for v in (revised_vessel,revised_voyage) if v)
-        lines.append("REVISED VESSEL / VOYAGE: " + revised.upper())
-    if row.get("vs_id"):
-        lines.append("SCHEDULE: " + str(row["vs_id"]).upper())
-    for field, before, after, delta in changes:
-        port = str(row.get("pol" if field == "ETD" else "pod") or "").strip()
-        label = field + (" " + port.upper() if port else "")
-        direction = "DELAYED" if delta > 0 else "ADVANCED"
-        days = abs(delta)
-        lines += ["", f"{label}: {before:%d %b %Y} → {after:%d %b %Y}.".upper(),
-                  f"({direction} BY {days} {'DAY' if days == 1 else 'DAYS'})."]
-    lines += ["", "WE WILL CONTINUE TO MONITOR THE SHIPMENT AND KEEP YOU POSTED."]
-    return {"header": header, "remarks": "\n".join(lines)}
+    text=lambda k:str(row.get(k) or "").strip()
+    changes=changes_for(row)
+    vessel_changed=bool(text('revised_vessel') and text('revised_vessel').upper()!=text('vessel').upper())
+    voyage_changed=bool(text('revised_voyage') and text('revised_voyage').upper()!=text('voyage').upper())
+    if not any(str(v or '').strip() for v in row.values()) and not str(reason).strip():
+        raise ValueError('Enter at least one schedule detail. Every field is optional.')
+    prefix=leg_prefix(row)
+    directions=['DELAYED' if c[3]>0 else 'ADVANCED' for c in changes]
+    if changes:
+        header=prefix+(' AND '.join(c[0] for c in changes)+' CHANGED AND '+directions[0] if len(set(directions))==1 else ' AND '.join(c[0]+' '+d for c,d in zip(changes,directions)))
+    else:header=prefix+'SCHEDULE UPDATE'
+    if vessel_changed or voyage_changed:header=('VESSEL CHANGE' if vessel_changed else 'VOYAGE CHANGE')+(', '+header if changes else '')
+    revised=bool(changes or vessel_changed or voyage_changed)
+    lines=['PLEASE BE INFORMED THAT THE SUBJECT SHIPMENT SCHEDULE HAS BEEN REVISED.' if revised else 'PLEASE BE INFORMED OF THE FOLLOWING SHIPMENT SCHEDULE UPDATE.']
+    details=[]
+    identity=' / '.join(filter(None,[text('vessel'),text('voyage')]))
+    replacement=' / '.join(filter(None,[text('revised_vessel'),text('revised_voyage')]))
+    if identity:details.append('VESSEL / VOYAGE: '+identity.upper())
+    if replacement:details.append('REVISED VESSEL / VOYAGE: '+replacement.upper())
+    if text('vs_id'):details.append('SCHEDULE: '+text('vs_id').upper())
+    if text('leg'):details.append('LEG: '+text('leg')+(' OF '+text('total_legs') if text('total_legs') else ''))
+    elif text('total_legs'):details.append('TOTAL LEGS: '+text('total_legs'))
+    for key in ('pol','pod'):
+        if text(key):details.append(key.upper()+': '+text(key).upper())
+    if details:lines+=['']+details
+    for key in ('etd','eta'):
+        old,new=parse_date(row.get('at_'+key)),parse_date(row.get('carrier_'+key))
+        if old and new and old!=new:
+            delta=(new-old).days;days=abs(delta);direction='DELAYED' if delta>0 else 'ADVANCED'
+            lines+=['',f'{key.upper()}: {old:%d %b %Y} → {new:%d %b %Y}.'.upper(),f"({direction} BY {days} {'DAY' if days==1 else 'DAYS'})."]
+        elif old or new:
+            label='' if old and new else 'REVISED ' if new else 'CURRENT '
+            lines+=['',f'{label}{key.upper()}: {(new or old):%d %b %Y}.'.upper()]
+    if str(reason).strip():lines+=['','REASON: '+str(reason).strip().rstrip('.').upper()+'.']
+    lines+=['','WE WILL CONTINUE TO MONITOR THE SHIPMENT AND KEEP YOU POSTED.']
+    return {'header':header,'remarks':'\n'.join(lines)}
+
 
 def copy_text(window, text):
     window.clipboard_clear()

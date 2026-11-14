@@ -22,13 +22,16 @@ from fcl_tracking import enrich_source
 from arrival_alerts import ArrivalAlerts
 
 
-APP_NAME = "ActivTrack Vessel Report Generator v1.7.0"
+APP_NAME = "ActivTrack Vessel Report Generator v1.8.2"
 
 
 class ReportApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title(APP_NAME)
+        icon = Path(__file__).parent / "assets" / "activtrack-icon.ico"
+        if icon.is_file():
+            self.root.iconbitmap(default=str(icon))
         self.root.geometry("1100x820")
         self.root.minsize(1000, 760)
         self.root.configure(bg="#0B0B0C")
@@ -52,7 +55,6 @@ class ReportApp:
         self._configure_style()
         self._build_ui()
         self.arrival_alerts = ArrivalAlerts(self.root, self._log)
-        self.root.after(30000,self._scheduled_fcl)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _configure_style(self) -> None:
@@ -121,9 +123,8 @@ class ReportApp:
         self.dashboard=OperationsDashboard(self.root,self.fcl_controller)
 
     def _scheduled_fcl(self):
-        if not self.fcl_controller.closed:
-            self.fcl_controller.scheduled_tick()
-            self.root.after(30000,self._scheduled_fcl)
+        # FCL checks are manual only. Retained for callers from older UI versions.
+        return
 
     def _validate_settings(self) -> tuple[date, Path]:
         try:
@@ -323,12 +324,16 @@ class ReportApp:
                 return
         if self.automated_tracking_window and self.automated_tracking_window.window.winfo_exists():
             if getattr(self.automated_tracking_window,'embedded',False):
-                self.automated_tracking_window.window.pack(fill='both',expand=True)
+                runner=self.automated_tracking_window
+                if runner.busy:return
+                runner.window.destroy()
+                self.automated_tracking_window=None
+                self.ui.runners.pop('auto',None)
+            else:
+                self.automated_tracking_window.window.deiconify()
+                self.automated_tracking_window.window.lift()
+                self.automated_tracking_window.window.focus_force()
                 return
-            self.automated_tracking_window.window.deiconify()
-            self.automated_tracking_window.window.lift()
-            self.automated_tracking_window.window.focus_force()
-            return
         if self.morning_source_path is None or not self.morning_source_path.is_file():
             messagebox.showerror(
                 APP_NAME,

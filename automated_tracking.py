@@ -1,6 +1,7 @@
 """Planning, merging and Excel output for the one-button morning vessel run."""
 
 from __future__ import annotations
+from sea_legs import sea_legs
 
 import csv
 import json
@@ -107,7 +108,7 @@ def route_bot(carrier: object, vessel: object) -> str | None:
 def schedules_from_source(data: dict) -> list[dict]:
     supplied = data.get("schedules")
     if isinstance(supplied, list) and supplied:
-        return supplied
+        return [dict(schedule,transshipments=sea_legs(schedule)) for schedule in supplied if isinstance(schedule,dict)]
     schedules: dict[str, dict] = {}
     for booking in data.get("bookings") or []:
         schedule = (booking or {}).get("vessel_schedule")
@@ -115,7 +116,7 @@ def schedules_from_source(data: dict) -> list[dict]:
             continue
         key = str(schedule.get("id") or schedule.get("reference_number") or "")
         if key and key not in schedules:
-            schedules[key] = schedule
+            schedules[key] = dict(schedule,transshipments=sea_legs(schedule))
     return list(schedules.values())
 
 

@@ -1,8 +1,5 @@
 ActivTrack Vessel Report Generator
-Version 1.8.1
-Built 2026-11-13
+Version 1.8.2
+Built 2026-11-14
 
-React desktop workspace connected to the existing reporting and tracking engines.
-Inter typography, Lucide icons and adapted MIT-licensed Kibo components.
-Official centred logo, black/white/red theme, purple automation, blue Long Term Auto.
-Integrated notice headers and date-change remarks; clipboard-only actions.
+In-app GitHub updater, manual-only FCL checks, sea-vessel ETA policy, optional notices and retained dashboard data.

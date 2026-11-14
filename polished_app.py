@@ -17,6 +17,8 @@ class DesktopBridge:
         self.state={};self.lock=threading.Lock();self.last_seen=time.monotonic();self.started=False
         self.error='';self.cache_key=None;self.cache=[]
         self.latest_source=None
+        from app_updater import UpdateManager
+        self.updater=UpdateManager(BASE,finished=lambda:self.root.after(0,self.app._on_close))
         original_save=app._save_source_json
         def save_source(*args,**kwargs):
             path=original_save(*args,**kwargs);self.latest_source=str(path);return path
@@ -39,15 +41,23 @@ class DesktopBridge:
                     runs[key]={'busy':r.busy,'status':v.get() if v else '', 'progress':float(p['value']) if p else 0,'maximum':float(p['maximum']) if p else 100}
             state={'busy':a.busy,'status':a.status_var.get(),'logs':a.log_box.get('1.0','end').strip().splitlines()[-10:],
                    'source':str(a.morning_source_path or ''),'reportSource':self.latest_source,'output':str(a.last_output or ''),'folder':a.output_var.get(),'date':a.as_of_var.get(),
-                   'runs':runs,'error':self.error,'fcl':a.fcl_controller.snapshot(),'fclBusy':a.fcl_controller.busy}
+                   'runs':runs,'error':self.error,'fcl':a.fcl_controller.snapshot(),'fclBusy':a.fcl_controller.busy or a.fcl_controller.queued,'updater':self.updater.snapshot()}
             with self.lock:self.state=state
         except tk.TclError:return
-        if self.started and time.monotonic()-self.last_seen>900 and not a.busy and not any(r.get('busy') for r in self.state.get('runs',{}).values()) and not a.fcl_controller.busy:
-            a._on_close();return
+        # Edge may suspend background tabs. Keep the engine available until explicit shutdown.
         self.root.after(800,self.snapshot)
     def action(self,name,args):
         a=self.app;self.error=''
         try:
+            if self.updater.snapshot()['busy']:raise ValueError('An app update operation is running. Wait for it to finish.')
+            if name.startswith('update_'):
+                active=a.busy or a.fcl_controller.busy or a.fcl_controller.queued or any(getattr(r,'busy',False) for r in (a.tracking_window,a.automated_tracking_window,a.long_term_window) if r)
+                if active:raise ValueError('Finish or stop the current report/tracking run before updating.')
+                if name=='update_check':self.updater.check()
+                elif name=='update_install':self.updater.install()
+                elif name=='update_restart':self.updater.activate({'source':str(a.morning_source_path or ''),'output':str(a.last_output or ''),'folder':a.output_var.get()})
+                else:raise ValueError('Unknown update action')
+                return
             if 'date' in args:
                 datetime.strptime(args['date'],'%Y-%m-%d');a.as_of_var.set(args['date'])
             if 'save' in args:a.save_json_var.set(bool(args['save']))
@@ -81,8 +91,12 @@ class DesktopBridge:
                 if a.automated_tracking_window and a.automated_tracking_window.busy:a.automated_tracking_window._stop_tracking()
                 if a.long_term_window and a.long_term_window.busy:a.long_term_window.cancel()
                 a.fcl_controller.stop.set()
-            elif name=='dashboard':a._open_dashboard()
-            elif name=='check':a.fcl_controller.start()
+            elif name=='dashboard':
+                if not a.fcl_controller.busy and not a.fcl_controller.queued:
+                    try:a.fcl_controller.load_queue()
+                    except FileNotFoundError:pass
+            elif name=='check':
+                if not a.fcl_controller.start():raise ValueError(a.fcl_controller.message or 'A check is already running.')
             elif name=='export':a._open_dashboard();a.dashboard.export()
             else:raise ValueError('Unknown action')
         except Exception as exc:self.error=str(exc);a._log('Action needs attention: '+str(exc))
@@ -124,7 +138,8 @@ def make_handler(bridge):
                         with bridge.lock:data=dict(bridge.state)
                     elif path=='/api/reports':data=bridge.reports()
                     elif path=='/api/vessels':
-                        from operations_dashboard import VESSEL_STATE
+                        from operations_dashboard import VESSEL_STATE, bootstrap_vessel_results
+                        if not VESSEL_STATE.is_file():bootstrap_vessel_results()
                         data=json.loads(VESSEL_STATE.read_text(encoding='utf-8')) if VESSEL_STATE.is_file() else {'rows':[]}
                     elif path=='/api/headers':
                         from notice_tools import HEADERS
@@ -148,18 +163,6 @@ def make_handler(bridge):
                 if self.path=='/api/notice':
                     from notice_tools import build_notice
                     row=dict(data.get('row') or {})
-                    if row.get('vs_id') and not row.get('total_legs'):
-                        with bridge.lock:source_path=bridge.state.get('source') or bridge.state.get('reportSource')
-                        if not source_path:
-                            try:
-                                from tracking_report import latest_booking_source
-                                source_path=latest_booking_source()
-                            except FileNotFoundError:pass
-                        if source_path:
-                            from report_builder import normalize_source
-                            schedules=normalize_source(json.loads(Path(source_path).read_text(encoding='utf-8-sig')))['schedules']
-                            match=next((s for s in schedules if s['reference_number']==row['vs_id']),None)
-                            if match:row['total_legs']=len(match['legs'])
                     self.send(build_notice(row,data.get('reason','')));return
                 if self.path!='/api/action':self.send({},404);return
                 bridge.root.after(0,lambda:bridge.action(data.get('name'),data.get('args') or {}))
@@ -178,6 +181,17 @@ def main():
                 launch_window(current['url']);return
     except (OSError,ValueError,KeyError):pass
     root=tk.Tk();root.withdraw();app=ReportApp(root);root.withdraw()
+    # One-shot workspace handoff during an idle engine upgrade. No credentials.
+    handoff=BASE/'.runtime'/'reload-workspace.json'
+    try:
+        saved=json.loads(handoff.read_text(encoding='utf-8-sig'))
+        source=Path(saved.get('source') or '')
+        if source.is_file():app.morning_source_path=source
+        output=Path(saved.get('output') or '')
+        if output.is_file():app.last_output=output
+        if saved.get('folder'):app.output_var.set(str(saved['folder']))
+        handoff.unlink()
+    except (OSError,ValueError,TypeError):pass
     bridge=DesktopBridge(root,app)
     server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(bridge))
     server.daemon_threads=True
@@ -187,7 +201,7 @@ def main():
     SESSION.write_text(json.dumps({'base':f'http://127.0.0.1:{server.server_port}','url':url,'token':bridge.token}),encoding='utf-8')
     launch_window(url)
     try:root.mainloop()
-    finally:server.shutdown()
+    finally:bridge.updater.close();server.shutdown()
 
 def launch_window(url):
     edge=Path(os.environ.get('PROGRAMFILES(X86)',r'C:\Program Files (x86)'))/'Microsoft'/'Edge'/'Application'/'msedge.exe'

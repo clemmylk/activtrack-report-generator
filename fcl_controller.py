@@ -31,7 +31,7 @@ class FCLController:
         previous={r['key']:r for r in self.state.get('containers',[])}
         for r in records:
             old=previous.get(r['key'],{})
-            if old.get('source_path')==str(path) and old.get('source_mtime')==path.stat().st_mtime:
+            if old.get('checked_at') and all(old.get(k)==r.get(k) for k in ('container','vessel','voyage','pol','pod')):
                 for k in ('status','departure','reason','checked_at','checks','evidence','arrived_at'):r[k]=old.get(k,'')
             else:r.update(status='NOT CHECKED',departure='NOT CONFIRMED',reason='Not checked against this capture',checks=[])
             if r.get('checks') and r.get('status')=='N/A':
@@ -82,7 +82,6 @@ class FCLController:
                     self.progress=(index,len(records))
                     # Save partial progress so stopping never loses completed observations.
                     current={r['key']:r for r in self.state.get('containers',[])}
-                    if not verification and index==1:current={r['key']:dict(r,status='N/A',departure='NOT CONFIRMED',reason='Not checked in this round',source_path=str(path)) for r in records}
                     current[record['key']]=result[-1];self.state['containers']=list(current.values());self.state['source']=str(path)
                     write_json(STATE,self.state)
                 now=datetime.now(COLOMBO);self.state['last_round']=now.isoformat(timespec='seconds');self.state['stopped']=self.stop.is_set()
@@ -98,15 +97,7 @@ class FCLController:
             return []
         finally:browser.close();self.busy=False;self._guard.release()
     def scheduled_tick(self):
-        now=datetime.now(COLOMBO)
-        if self.closed or self.busy or self.queued or self.browser_busy():return
-        slot=due_slot(now,self.state.get('completed_slots',[]))
-        if slot:
-            try:
-                path=self.source()
-                if datetime.fromtimestamp(path.stat().st_mtime,COLOMBO).date()!=now.date():
-                    self.message='Scheduled check waiting for today’s captured booking JSON';return
-            except (OSError,FileNotFoundError):return
-            self.start(slot=slot)
+        # Never start network tracking from the clock or dashboard navigation.
+        return
     def close(self):
         self.closed=True;self.stop.set();self.executor.shutdown(wait=False,cancel_futures=True)

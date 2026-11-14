@@ -4,7 +4,7 @@
 
 ## Download and start
 
-1. Open [Releases](https://github.com/clemmylk/activtrack-report-generator/releases/latest) and download **ActivTrack-Report-Generator-1.8.1-Windows-x64.zip** under **Assets**. Do not use GitHub's automatically generated source-code ZIP as the installed application.
+1. Open [Releases](https://github.com/clemmylk/activtrack-report-generator/releases/latest) and download **ActivTrack-Report-Generator-1.8.2-Windows-x64.zip** under **Assets**. Do not use GitHub's automatically generated source-code ZIP as the installed application.
 2. Right-click the downloaded ZIP → **Extract All**. Put the extracted folder somewhere writable, such as Documents. Do not run the app inside the ZIP.
 3. Open the extracted folder and double-click **02_START_APP.bat**.
 4. Optional: run **01_CREATE_DESKTOP_SHORTCUT.vbs** once to create a desktop shortcut.
@@ -46,3 +46,13 @@ The application reads the configured ActivTrack deployment. It is not a replacem
 This is an **unsigned portable release**, not a signed Windows installer. Windows or company policy may block it. Use your IT team's approval process; do not disable security controls to install it. This package contains no shared login, saved browser session, API key or shipment report.
 
 Copyright Globactive Logistics Sri Lanka | developed by Clement R.
+
+## App updates
+
+Open **Update app** at the bottom of the side menu. Select **Check for updates**, then **Download & install** if a newer stable release is available. When installation is ready, select **Restart updated app**. The update checks the official GitHub release checksum, installs into a separate per-user folder, retargets desktop shortcuts and restores the captured-source/output folder. Finish active tracking/capture work first.
+
+Reports stay in Documents/ActivTrack Reports (or your selected output folder). The previous app copy is retained and can be launched from its original folder if needed. No administrator access is required for the normal per-user installation. Windows/company policies may still block unsigned software.
+
+Versions before 1.8.2 do not have this button. Download and extract 1.8.2 once to enable future in-app updates. The publisher must attach both the matching Windows portable ZIP and SHA256SUMS.txt to each published stable GitHub release. Drafts, prereleases, older versions and incomplete packages are not installed.
+
+FCL checks are now manual only through the FCL dashboard **Check Now** button. Vessel tracking does not start container checks. All vessel-arrival reporting uses sea-vessel ETA, excluding truck legs. Missing sea ETA stays missing. The notice form accepts optional fields and generates a matching header and remarks.

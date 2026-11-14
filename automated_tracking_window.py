@@ -152,7 +152,6 @@ class AutomatedTrackingWindow:
         if not self.busy or self.stop_requested.is_set():
             return
         self.stop_requested.set()
-        if getattr(self,'fcl_controller',None):self.fcl_controller.stop.set()
         self.stop_button.configure(state="disabled")
         self.status_var.set("Stopping the current carrier bot…")
         self._log("STOP requested. Closing the active carrier bot and browser; remaining vessels will move to Manual Tracking.")
@@ -188,7 +187,7 @@ class AutomatedTrackingWindow:
             return False
 
     def _start(self) -> None:
-        if not self.plan_rows and not self.fcl_controller:
+        if not self.plan_rows:
             self.busy = False
             self.stop_button.configure(state="disabled")
             self.status_var.set("No ATA-blank vessel legs were found")
@@ -196,9 +195,6 @@ class AutomatedTrackingWindow:
             return
 
         def work() -> AutomatedTrackingStats:
-            if self.fcl_controller:
-                self._thread_log('FCL containers first: MSC priority; quiet Edge checks.')
-                self.fcl_controller.run_sync(self.source_path)
             stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             CARRIER_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
             run_data = CARRIER_REPORTS_DIR / "Daily Run Data" / stamp

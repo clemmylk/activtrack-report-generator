@@ -270,8 +270,8 @@ class OperationsDashboard:
         if signature!=self.last_render:
             self.last_render=signature;self.render(state,vstate)
         if time.monotonic()>=self.copy_until:self.message.set(self.controller.message+'  |  Click a VS ID or vessel name to copy · Right-click a vessel change for notice text')
-        next_at=next_check(datetime.now(COLOMBO));last=state.get('last_round','Not checked')
-        self.timing.set(f'Last: {last[11:16] if len(last)>16 else last}  |  Next: {next_at:%d %b %H:%M} SL')
+        last=state.get('last_round','Not checked')
+        self.timing.set(f'Last checked: {last}  |  Manual checks only')
         self.window.after(1500,self.tick)
     def render(self,state,vstate):
         query=self.query.get().upper();carrier=self.carrier.get();status=self.status_filter.get()

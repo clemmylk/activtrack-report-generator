@@ -7,6 +7,7 @@ never flattened or lost.
 """
 
 from __future__ import annotations
+from sea_legs import sea_legs
 
 from collections import defaultdict
 from dataclasses import dataclass
@@ -127,7 +128,7 @@ def _normalize_leg(raw: dict[str, Any], fallback: dict[str, Any]) -> dict[str, A
         # actual date when this leg is blank: for transshipments that would copy the
         # first leg's ATD into later legs and hide them from the ATD Missing report.
         "atd": _as_date(_pick(raw, "atd", "actual_departure", "actualDeparture", default=None)),
-        "eta": _as_date(_pick(raw, "eta", "estimated_arrival", "estimatedArrival", default=_pick(fallback, "eta"))),
+        "eta": _as_date(_pick(raw, "eta", "estimated_arrival", "estimatedArrival", default=None)),
         # Apply the same rule to ATA so an earlier leg's arrival cannot be reported
         # as the actual arrival of a later leg.
         "ata": _as_date(_pick(raw, "ata", "actual_arrival", "actualArrival", default=None)),
@@ -168,7 +169,8 @@ def normalize_source(source: dict[str, Any]) -> dict[str, Any]:
         raw_legs = _pick(raw, "legs", "vessel_legs", "schedule_legs", "vessel_schedule_legs", "transshipments", default=[])
         if not isinstance(raw_legs, list) or not raw_legs:
             raw_legs = [raw]
-        legs = [_normalize_leg(leg if isinstance(leg, dict) else {}, raw) for leg in raw_legs]
+        # Use only sea legs; never inherit an inland ETA from the parent schedule.
+        legs = [dict(_normalize_leg(leg, raw), leg_number=leg['leg_number']) for leg in sea_legs(dict(raw, legs=raw_legs))]
         route_type = _normalize_route(_pick(raw, "route_type", "routeType"), len(legs))
         schedule = {
             "id": schedule_id,
@@ -215,6 +217,9 @@ def normalize_source(source: dict[str, Any]) -> dict[str, Any]:
                     "The booking could not be linked to a captured vessel schedule.",
                 ))
                 continue
+        if not schedules_by_id[str(schedule_id)]['legs']:
+            incomplete_bookings.append(_normalize_incomplete_booking(raw, 'No sea-vessel leg is recorded; truck ETA is excluded.'))
+            continue
         if reference in seen_booking_refs:
             continue
         seen_booking_refs.add(reference)
@@ -359,8 +364,8 @@ def _build_records(source: dict[str, Any]) -> tuple[list[dict[str, Any]], list[d
                 "shipment_type": booking.get("shipment_type", ""),
                 "schedule_ref": schedule["reference_number"],
                 "route_type": schedule["route_type"],
-                "total_legs": len(legs),
-                "leg_no": leg_no,
+                "total_legs": max([int(l.get("leg_number") or i) for i,l in enumerate(legs,1)],default=0),
+                "leg_no": leg.get("leg_number") or leg_no,
                 "vessel_name": leg.get("vessel_name") or "(Vessel not specified)",
                 "voyage": leg.get("voyage", ""),
                 "pol": leg.get("departure_port", ""),
@@ -385,8 +390,8 @@ def _build_records(source: dict[str, Any]) -> tuple[list[dict[str, Any]], list[d
                 "schedule_ref": schedule["reference_number"],
                 "voyage": leg.get("voyage", ""),
                 "route_type": schedule["route_type"].upper(),
-                "leg_no": leg_no,
-                "total_legs": len(schedule["legs"]),
+                "leg_no": leg.get("leg_number") or leg_no,
+                "total_legs": max([int(l.get("leg_number") or i) for i,l in enumerate(schedule["legs"],1)],default=0),
                 "pol": leg.get("departure_port", ""),
                 "pod": leg.get("arrival_port", ""),
                 "bkg_cutoff": leg.get("bkg_cutoff"),

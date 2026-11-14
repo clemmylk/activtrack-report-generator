@@ -1,5 +1,6 @@
 """Read-only TinyFish/MarineTraffic arrival candidates; local popups only."""
 from __future__ import annotations
+from sea_legs import sea_legs
 
 import hashlib
 import json
@@ -41,7 +42,7 @@ def watchlist(folder=REPORTS, now=None):
     calls = {}
     for booking in data.get('bookings') or []:
         schedule = booking.get('vessel_schedule') or {}
-        for leg in schedule.get('transshipments') or []:
+        for leg in sea_legs(schedule):
             for kind, planned, actual, port_field in [
                 ('arrival', 'eta', 'ata', 'arrival_port'),
                 ('departure', 'etd', 'atd', 'departure_port')]:

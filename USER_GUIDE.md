@@ -56,7 +56,7 @@ Long Term Auto: paste a future sailing schedule containing vessel, voyage, ports
 
 Switch between FCL Container Tracking and Vessel Changes. Use search and available carrier/status filters. Click a VS ID or vessel text to copy it. Vessel changes prioritise consoles. Right-click a change row for copyable notice header and remarks.
 
-The FCL workflow uses captured container details, compares carrier and owner sources where supported and prioritises MSC risk. Checks are scheduled for 10:00, 13:00 and 16:00 Sri Lanka time while the application and controller are running; Check Now starts an on-demand check. The computer must be awake and connected. It is not an always-on hosted service.
+The FCL workflow uses captured container details, compares carrier and owner sources where supported and prioritises MSC risk. Checks run only when you press Check Now in FCL Container Tracking. Automatic timed FCL rounds are disabled. The computer must be awake and connected. It is not an always-on hosted service.
 
 | Status | Meaning |
 | --- | --- |
@@ -76,3 +76,13 @@ Notice Headers & Remarks prepares copyable text. Supply a reason where known; co
 Main output: Documents/ActivTrack Reports unless changed in settings. Carrier comparisons are organised under Carrier Tracking Reports; tracking audit files may also be created inside the extracted carrier tool folders. Keep JSON snapshots private because they contain operational booking information.
 
 Each user signs in independently. Never give colleagues a copy of your already-used application folder with browser profiles, runtime sessions, credentials or reports. Share only the clean release ZIP from GitHub. Close the app when finished and recapture fresh data before the next day's review.
+
+## App updates
+
+Open **Update app** at the bottom of the side menu. Select **Check for updates**, then **Download & install** if a newer stable release is available. When installation is ready, select **Restart updated app**. The update checks the official GitHub release checksum, installs into a separate per-user folder, retargets desktop shortcuts and restores the captured-source/output folder. Finish active tracking/capture work first.
+
+Reports stay in Documents/ActivTrack Reports (or your selected output folder). The previous app copy is retained and can be launched from its original folder if needed. No administrator access is required for the normal per-user installation. Windows/company policies may still block unsigned software.
+
+Versions before 1.8.2 do not have this button. Download and extract 1.8.2 once to enable future in-app updates. The publisher must attach both the matching Windows portable ZIP and SHA256SUMS.txt to each published stable GitHub release. Drafts, prereleases, older versions and incomplete packages are not installed.
+
+FCL checks are now manual only through the FCL dashboard **Check Now** button. Vessel tracking does not start container checks. All vessel-arrival reporting uses sea-vessel ETA, excluding truck legs. Missing sea ETA stays missing. The notice form accepts optional fields and generates a matching header and remarks.

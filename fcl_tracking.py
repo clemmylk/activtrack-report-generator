@@ -1,3 +1,4 @@
+from sea_legs import sea_legs, is_inland_leg
 """Container-first capture, evidence rules and scheduled tracking state."""
 import json
 import re
@@ -35,11 +36,11 @@ def extract_fcl(source):
     for booking in (source.get('bookings') or [])+(source.get('incomplete_bookings') or []):
         if str(booking.get('shipment_type') or '').upper()!='FCL':continue
         schedule=booking.get('vessel_schedule') or schedules.get(str(booking.get('vessel_schedule_id'))) or {}
-        legs=sorted(schedule.get('transshipments') or [],key=lambda l:int(l.get('leg_number') or 0))
+        legs=sorted(sea_legs(schedule),key=lambda l:int(l.get('leg_number') or 0))
         remaining=[l for l in legs if not l.get('ata')]
         current=(remaining or legs or [{}])[0]
         final=(legs or [{}])[-1]
-        vessel=(current.get('vessel') or {}).get('name') or booking.get('last_Leg_vessel') or ''
+        vessel=(current.get('vessel') or {}).get('name') or current.get('vessel_name') or ''
         carrier=carrier_name((schedule.get('carrier') or {}).get('name'))
         operator=carrier
         for prefix,owner in [('MSC ','MSC'),('WAN HAI ','Wan Hai'),('EVER ','Evergreen'),('MAERSK ','Maersk'),('CMA CGM ','CMA CGM'),('OOCL ','OOCL'),('COSCO ','COSCO')]:
@@ -51,7 +52,7 @@ def extract_fcl(source):
             c=re.sub(r'\s','',c)
             records.append({'key':str(booking.get('id') or booking.get('reference_number'))+'|'+c,'booking_id':booking.get('reference_number',''),'vs_id':schedule.get('reference_number') or booking.get('vessel_schedule_reference_number') or '', 'container':c,'container_valid':valid_container(c),'owner':PREFIXES.get(c[:4],''),'carrier':carrier,'operator':operator,'vessel':vessel,'voyage':current.get('voyage',''),'pol':(legs[0].get('departure_port') or {}).get('name','') if legs else booking.get('departure_port',''),'pod':(final.get('arrival_port') or {}).get('name') or schedule.get('arrival_port',''),'pol_code':(legs[0].get('departure_port') or {}).get('code','') if legs else '', 'pod_code':(final.get('arrival_port') or {}).get('code',''),'current_pol':(current.get('departure_port') or {}).get('name',''),'current_pol_code':(current.get('departure_port') or {}).get('code',''),'current_pod':(current.get('arrival_port') or {}).get('name',''),'mbl':booking.get('mbl_number',''),'hbl':booking.get('hbl_number',''),'etd':(legs[0].get('etd') if legs else booking.get('first_etd')) or '', 'eta':final.get('eta',''),'legs':legs,'priority':0 if any((l.get('vessel') or {}).get('name','').upper().startswith('MSC ') for l in legs) or operator=='MSC' else 1,'snapshot_arrived':bool(final.get('ata')),'customer':booking.get('customer_name','')})
             records[-1]['container_raw']=raw
-            records[-1]['final_arrival_at']=final.get('ata') or schedule.get('ata') or ''
+            records[-1]['final_arrival_at']=final.get('ata') or ''
             recording=next((h for h in booking.get('container_recording_history',[]) if h.get('container')==c),None) or history.get(str(booking.get('reference_number') or booking.get('id'))+'|'+c,{})
             for field in ('recorded_date','recording_basis','first_seen_at','first_seen_source','booking_updated_date','previous_seen_at','previous_containers'):
                 records[-1][field]=recording.get(field,'')

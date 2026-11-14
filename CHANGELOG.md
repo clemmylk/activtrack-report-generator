@@ -1,5 +1,15 @@
 # Release notes
 
+## 1.8.2 — 14 November 2026
+
+- Added in-app GitHub release checking, verified portable downloads, versioned installation and restart.
+- Preserves report files, output folder and captured source; keeps previous application copy.
+- Start tracking locks immediately and excludes FCL checks. FCL tracking is manual only.
+- Dashboard retains observations and shows last-checked time.
+- Restored optional notice fields with generated headers and remarks.
+- Shared sea-vessel ETA policy excludes inland/truck dates from vessel reports and tracking.
+
+
 ## 1.8.1 — 13 November 2026
 
 - Fixed long activity messages stretching the workspace beyond the window.

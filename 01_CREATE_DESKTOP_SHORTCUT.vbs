@@ -6,5 +6,6 @@ shortcut.TargetPath = folder & "\02_START_APP.bat"
 shortcut.WorkingDirectory = folder
 shortcut.WindowStyle = 7
 shortcut.Description = "ActivTrack Report Generator"
+shortcut.IconLocation = folder & "\assets\activtrack-icon.ico"
 shortcut.Save
 MsgBox "Desktop shortcut created. Keep the extracted application folder in this location.", 64, "ActivTrack"
