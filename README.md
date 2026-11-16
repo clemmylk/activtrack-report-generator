@@ -1,6 +1,22 @@
 # ActivTrack Report Generator
 
-**Windows desktop app for authorised sea-import operations teams.** Capture filtered ActivTrack bookings, generate Excel reports, compare carrier schedules and review FCL/container and vessel changes in one workspace.
+**A Windows desktop workspace for authorised sea-import teams.** Capture ActivTrack bookings, create Excel reports, compare carrier schedules and review vessel/FCL changes. The v1.8.3 source package adds loading-plan checks against your latest captured booking data.
+
+## What’s new in v1.8.3
+
+**Available now as an uploaded [v1.8.3 source package](ActivTrack-Report-Generator-1.8.3-Source.zip). The latest published ready-to-run Windows release is still v1.8.2.** The source ZIP does not include Python or the prebuilt interface and cannot be installed by the in-app updater.
+
+- **Loading Plan Check:** upload XLSX, CSV, TSV, TXT or Markdown, or paste a table with its headings. Compare it with the latest captured booking JSON in your report folder.
+- **Vessel, voyage and ETD checks:** reviews all captured sea legs for transshipment bookings; truck/inland legs are excluded.
+- **Missing-details review:** highlights missing HBL, MBL, container, consignee, package count, gross weight and CBM. Missing SO alone is not flagged.
+- **Clear matches and exceptions:** shows HBL, booking and VS IDs, plan values and captured values; ambiguous and not-found records stay visible for manual review.
+- **Common loading-plan layouts:** supports merged/shared cells and shifted cargo columns, with interpretation notes to review.
+- **Filter and export:** search results, expand details and download a comparison CSV for Excel. The input collapses after checking to give the results more space.
+- **Upcoming Arrivals sections:** a 48-hour overview, today, tomorrow and two days ahead, based on date-only sea-vessel ETAs.
+- **Wan Hai tracking improvements:** normal/minimized Edge, fresh schedule parsing and explicit collection-failure results.
+- **Experimental Arrivals Today:** refresh/recheck and an ActivTrack vessel-search shortcut. MarineTraffic login/verification or loading problems can prevent checks; reliable live arrival detection remains unverified.
+
+Loading Plan Check is **read only** and compares a saved snapshot. “Not Found” means absent from that capture, not proof the booking does not exist in ActivTrack. PDF, XLS, images and scanned plans are unsupported. CARGOES Flow, Terminal49 and CallMeBot desktop integrations are not included.
 
 ## Download and start
 
